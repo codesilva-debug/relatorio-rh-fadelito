@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Relatório Administrativo | Fadelito</title>
+  <link rel="icon" type="image/png" href="/Fadelito.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Ir para o conteúdo</a>
+
+  <section id="loginView" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <img class="brand-logo" src="/Fadelito.png" alt="Logo Fadelito" width="54" height="54">
+      <p class="eyebrow">FADELITO · ADMINISTRATIVO</p>
+      <h1>Relatório Administrativo</h1>
+      <p class="muted">Acesso restrito à equipe.</p>
+      <label for="usernameInput">Usuário</label>
+      <input id="usernameInput" type="text" autocomplete="username" required autofocus>
+      <label for="passwordInput">Senha</label>
+      <div class="password-wrap">
+        <input id="passwordInput" type="password" autocomplete="current-password" required>
+        <button id="togglePassword" class="password-toggle" type="button" aria-pressed="false" aria-label="Mostrar senha">Mostrar</button>
+      </div>
+      <button id="loginBtn" class="button primary full" type="submit">Entrar</button>
+      <p id="loginMessage" class="form-message" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="appView" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-logo small" src="/Fadelito.png" alt="Logo Fadelito" width="42" height="42">
+        <span>Fadelito</span>
+      </div>
+      <nav class="nav-list" aria-label="Navegação principal">
+        <a class="nav-link active" href="#overview">Visão geral</a>
+        <a class="nav-link" href="#trend">Evolução mensal</a>
+        <a class="nav-link" href="#cancellations">Cancelamentos</a>
+        <a class="nav-link" href="#closing">Tempo de fechamento</a>
+        <a class="nav-link" href="#experiences">Vivências</a>
+        <a class="nav-link" href="#dataQuality">Qualidade dos dados</a>
+        <a class="nav-link" href="#records">Registros</a>
+      </nav>
+      <div class="sidebar-actions">
+        <button id="sidebarClearBtn" class="button danger full small" type="button">Limpar filtros</button>
+      </div>
+      <div class="sidebar-foot">
+        <span id="statusDot" class="status-dot pending"></span>
+        <div class="sidebar-sync">
+          <span id="sidebarStatus">Conectando à planilha</span>
+          <span id="updatedAt" class="muted small-text">—</span>
+        </div>
+      </div>
+    </aside>
+
+    <main id="main" class="main-content">
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <span id="filterResult" class="result-badge" aria-live="polite">—</span>
+          <span id="periodDescription" class="period-description"></span>
+          <div id="activeChips" class="chip-list" aria-label="Filtros ativos"></div>
+        </div>
+        <div class="top-bar-right">
+          <span id="syncPill" class="sync-pill pending">Verificando</span>
+          <button id="toggleFiltersBtn" class="button secondary small active" type="button" aria-expanded="true" aria-controls="filtersPanel">Filtros</button>
+          <button id="refreshBtn" class="button primary small" type="button" title="Buscar a leitura mais recente da planilha">Atualizar</button>
+          <button id="exportBtn" class="button secondary small" type="button" title="Baixar os registros filtrados em CSV (abre no Excel)">Exportar CSV</button>
+          <button id="printBtn" class="button plain small" type="button" title="Imprimir ou salvar em PDF">Imprimir</button>
+          <button id="helpBtn" class="button plain small" type="button" aria-haspopup="dialog">Como ler</button>
+          <button id="logoutBtn" class="button plain small" type="button">Sair</button>
+        </div>
+      </div>
+
+      <div id="globalMessage" class="message" role="status" hidden></div>
+
+      <p id="printContext" class="print-only"></p>
+
+      <section id="filtersPanel" class="filters panel theme-blue" aria-label="Filtros do relatório">
+        <div class="filters-top">
+          <div class="filter-heading">
+            <h2>Filtros</h2>
+          </div>
+          <div class="filter-actions">
+            <button id="generateReportBtn" class="button primary small" type="button">Gerar relatório específico</button>
+            <button id="clearFilters" class="button danger small" type="button">Limpar filtros</button>
+          </div>
+        </div>
+        <div class="filter-grid">
+          <div class="field">
+            <label for="periodPreset">Período</label>
+            <select id="periodPreset">
+              <option value="week">Semana atual</option>
+              <option value="month">Mês atual</option>
+              <option value="prevMonth">Mês anterior</option>
+              <option value="last30">Últimos 30 dias</option>
+              <option value="quarter">Últimos 3 meses</option>
+              <option value="year">Ano atual</option>
+              <option value="last12">Últimos 12 meses</option>
+              <option value="all">Todo o histórico</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dateFrom">De</label>
+            <input id="dateFrom" type="date">
+          </div>
+          <div class="field">
+            <label for="dateTo">Até</label>
+            <input id="dateTo" type="date">
+          </div>
+          <div class="field">
+            <label for="unitFilter">Unidade</label>
+            <select id="unitFilter"><option value="">Todas as unidades</option></select>
+          </div>
+          <div class="field">
+            <label for="roleFilter">Função</label>
+            <select id="roleFilter"><option value="">Todas as funções</option></select>
+          </div>
+          <div class="field">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter"><option value="">Todos os status</option></select>
+          </div>
+          <div class="field">
+            <label for="shiftFilter">Horário</label>
+            <select id="shiftFilter"><option value="">Todos os horários</option></select>
+          </div>
+          <div class="field">
+            <label for="typeFilter">Tipo de vaga</label>
+            <select id="typeFilter"><option value="">Todos os tipos</option></select>
+          </div>
+        </div>
+      </section>
+
+      <section id="overview" class="section-block first-section">
+        <div class="metric-grid">
+          <article class="metric-card accent-slate">
+            <span class="metric-label">Total de vagas <span class="info" tabindex="0" role="note" aria-label="Aprovadas mais em andamento. Canceladas ficam fora deste número e aparecem em indicador separado." data-tip="Aprovadas + em andamento. Canceladas ficam fora deste número e aparecem em indicador separado.">?</span></span>
+            <strong id="metricTotal" class="metric-value">—</strong>
+            <span class="metric-foot">Aprovadas + em andamento</span>
+            <span id="deltaTotal" class="metric-delta"></span>
+          </article>
+          <article class="metric-card accent-green">
+            <span class="metric-label">Aprovadas <span class="info" tabindex="0" role="note" aria-label="Registros com Status Aprovado. Percentual sobre todas as solicitações do período." data-tip="Registros com Status “Aprovado”. Percentual sobre todas as solicitações do período.">?</span></span>
+            <strong id="metricApproved" class="metric-value">—</strong>
+            <span id="metricApprovedFoot" class="metric-foot">Status Aprovado</span>
+            <button class="card-link" type="button" data-action="status" data-value="cat:approved">Ver só aprovadas</button>
+          </article>
+          <article class="metric-card accent-blue">
+            <span class="metric-label">Em andamento <span class="info" tabindex="0" role="note" aria-label="Status Triagem, Briefing ou Vivência." data-tip="Status Triagem, Briefing ou Vivência.">?</span></span>
+            <strong id="metricOngoing" class="metric-value">—</strong>
+            <span id="metricOngoingFoot" class="metric-foot">Triagem, Briefing e Vivência</span>
+            <button class="card-link" type="button" data-action="status" data-value="cat:in-progress">Ver só em andamento</button>
+          </article>
+          <article class="metric-card accent-red">
+            <span class="metric-label">Canceladas <span class="info" tabindex="0" role="note" aria-label="Status Cancelada. Ficam fora do total de vagas. A taxa é canceladas dividido por todas as solicitações." data-tip="Status “Cancelada”. Ficam fora do total de vagas. Taxa = canceladas ÷ todas as solicitações.">?</span></span>
+            <strong id="metricCancelled" class="metric-value">—</strong>
+            <span id="metricCancelledFoot" class="metric-foot">Fora do total de vagas</span>
+            <span id="deltaCancelled" class="metric-delta"></span>
+            <button class="card-link" type="button" data-action="status" data-value="cat:cancelled">Ver só canceladas</button>
+          </article>
+          <article class="metric-card accent-teal">
+            <span class="metric-label">Tempo médio para fechar <span class="info" tabindex="0" role="note" aria-label="Média da coluna Dias, calculada apenas sobre as vagas aprovadas que possuem o campo Dias preenchido." data-tip="Média da coluna Dias, calculada apenas sobre as vagas aprovadas que têm Dias preenchido.">?</span></span>
+            <strong id="metricAverage" class="metric-value">—</strong>
+            <span id="metricAverageFoot" class="metric-foot">Apenas aprovadas com Dias preenchido</span>
+            <span id="deltaAverage" class="metric-delta"></span>
+            <button class="card-link" type="button" data-action="goto" data-target="closing">Ver detalhes</button>
+          </article>
+        </div>
+
+        <article class="panel composition-panel theme-slate">
+          <div id="compositionBar" class="composition-bar" role="img" aria-label="Divisão das solicitações por status"></div>
+          <div id="compositionLegend" class="legend"></div>
+        </article>
+
+        <div class="content-grid two-columns">
+          <article class="panel chart-panel theme-blue">
+            <div class="panel-heading">
+              <div><h3>Vagas por função</h3><p class="muted small-text">Clique em uma função para filtrar o relatório.</p></div>
+              <div class="legend compact"><span><i class="swatch approved"></i>Aprovadas</span><span><i class="swatch ongoing"></i>Em andamento</span></div>
+            </div>
+            <div id="functionBars" class="bar-list"></div>
+          </article>
+          <article class="panel table-panel theme-blue">
+            <div class="panel-heading">
+              <div><h3>Vagas por unidade</h3><p class="muted small-text">Clique no nome para filtrar · clique na coluna para ordenar.</p></div>
+            </div>
+            <div class="table-wrap scroll-y">
+              <table class="unit-table">
+                <thead><tr>
+                  <th><button class="sort-button" type="button" data-action="sort-units" data-key="name">Unidade / grupo</button></th>
+                  <th class="num"><button class="sort-button" type="button" data-action="sort-units" data-key="total">Vagas</button></th>
+                  <th class="num"><button class="sort-button" type="button" data-action="sort-units" data-key="approved">Aprovadas</button></th>
+                  <th class="num"><button class="sort-button" type="button" data-action="sort-units" data-key="ongoing">Em andamento</button></th>
+                  <th class="num"><button class="sort-button" type="button" data-action="sort-units" data-key="cancelled">Canceladas</button></th>
+                  <th class="num"><button class="sort-button" type="button" data-action="sort-units" data-key="cancelRate" title="Canceladas ÷ solicitações da unidade">% cancel.</button></th>
+                </tr></thead>
+                <tbody id="unitTable"></tbody>
+                <tfoot id="unitTableTotal"></tfoot>
+              </table>
+            </div>
+            <div id="unitTableFoot" class="table-foot muted small-text"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="trend" class="section-block">
+        <div class="section-title">
+          <h2>Evolução mensal</h2>
+          <span class="muted small-text">Mês pela Data de abertura. Clique em um mês para filtrar só ele.</span>
+        </div>
+        <article class="panel chart-panel theme-blue">
+          <div class="panel-heading">
+            <div><h3>Solicitações por mês</h3><p id="trendNote" class="muted small-text">—</p></div>
+            <div class="legend compact"><span><i class="swatch approved"></i>Aprovadas</span><span><i class="swatch ongoing"></i>Em andamento</span><span><i class="swatch cancelled"></i>Canceladas</span><span><i class="swatch other"></i>Outros</span></div>
+          </div>
+          <div id="trendChart" class="trend-chart"></div>
+        </article>
+      </section>
+
+      <section id="cancellations" class="section-block">
+        <div class="section-title">
+          <h2>Cancelamentos</h2>
+          <span class="muted small-text">Quantidade e taxa (canceladas ÷ solicitações do grupo).</span>
+        </div>
+        <div class="content-grid two-columns">
+          <article class="panel chart-panel theme-red">
+            <div class="panel-heading"><div><h3>Por unidade</h3><p class="muted small-text">Ordenado pela quantidade de cancelamentos</p></div></div>
+            <div id="cancelUnitBars" class="bar-list"></div>
+          </article>
+          <article class="panel chart-panel theme-red">
+            <div class="panel-heading"><div><h3>Por função</h3><p class="muted small-text">Ordenado pela quantidade de cancelamentos</p></div></div>
+            <div id="cancelRoleBars" class="bar-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="closing" class="section-block">
+        <div class="section-title">
+          <h2>Tempo de fechamento</h2>
+          <span class="muted small-text">Coluna Dias · somente vagas aprovadas com Dias preenchido.</span>
+        </div>
+        <article class="panel closing-summary theme-teal">
+          <div class="summary-item"><span class="muted">Tempo médio</span><strong id="closingMean">—</strong><span class="small-text muted">Soma dos dias ÷ vagas</span></div>
+          <div class="summary-item"><span class="muted">Metade fechou em até</span><strong id="closingMedian">—</strong><span class="small-text muted">50% das vagas aprovadas</span></div>
+          <div class="summary-item"><span class="muted">Base do cálculo</span><strong id="closingCount">—</strong><span id="closingCoverage" class="small-text muted">—</span></div>
+        </article>
+        <div class="content-grid two-columns">
+          <article class="panel chart-panel theme-teal">
+            <div class="panel-heading"><div><h3>Distribuição dos prazos</h3><p class="muted small-text">Quantas vagas aprovadas fecharam em cada faixa de dias</p></div></div>
+            <div id="closingBuckets" class="bar-list"></div>
+          </article>
+          <article class="panel table-panel theme-teal">
+            <div class="panel-heading"><div><h3>Tempo por mês de abertura</h3><p class="muted small-text">Tempo médio em dias por mês</p></div></div>
+            <div class="table-wrap scroll-y">
+              <table>
+                <thead><tr><th>Mês</th><th class="num">Vagas no cálculo</th><th class="num">Tempo médio</th><th class="num">Metade em até</th></tr></thead>
+                <tbody id="closingTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="experiences" class="section-block">
+        <div class="section-title">
+          <h2>Vivências</h2>
+          <span class="muted small-text">Soma do campo “Total Vivências” da planilha.</span>
+        </div>
+        <div id="experienceStats" class="stat-row"></div>
+        <div class="content-grid two-columns">
+          <article class="panel chart-panel theme-purple">
+            <div class="panel-heading"><div><h3>Total por função</h3><p class="muted small-text">Valor registrado na coluna de origem</p></div></div>
+            <div id="experienceRoleBars" class="bar-list"></div>
+          </article>
+          <article class="panel chart-panel theme-purple">
+            <div class="panel-heading"><div><h3>Total por unidade</h3><p class="muted small-text">Valor registrado na coluna de origem</p></div></div>
+            <div id="experienceUnitBars" class="bar-list"></div>
+          </article>
+        </div>
+        <div class="callout theme-purple">O significado operacional de “Total Vivências” ainda precisa ser confirmado com RH. Os valores são a soma literal da coluna e não devem ser lidos como candidatos encaminhados.</div>
+      </section>
+
+      <section id="dataQuality" class="section-block">
+        <div class="section-title">
+          <h2>Qualidade dos dados</h2>
+          <span class="muted small-text">Conferência de toda a planilha (não depende dos filtros). Nada é corrigido automaticamente.</span>
+        </div>
+        <article class="panel audit-panel theme-amber">
+          <div id="auditMetrics" class="audit-metrics"></div>
+          <ul id="auditChecklist" class="checklist"></ul>
+          <div class="audit-detail">
+            <h3>Unidades fora do cadastro ou sem classificação</h3>
+            <div id="auditUnits" class="audit-list"></div>
+          </div>
+        </article>
+      </section>
+
+      <section id="records" class="section-block">
+        <div class="section-title">
+          <h2>Registros</h2>
+          <span id="recordCount" class="muted small-text"></span>
+        </div>
+        <article class="panel table-panel theme-slate">
+          <div class="records-toolbar">
+            <div class="search-field">
+              <label for="recordSearch" class="visually-hidden">Buscar nos registros</label>
+              <input id="recordSearch" type="search" placeholder="Buscar por função, unidade, status, horário ou linha…" autocomplete="off">
+            </div>
+            <span class="muted small-text">Clique no título da coluna para ordenar.</span>
+          </div>
+          <div class="table-wrap records-wrap">
+            <table class="records-table">
+              <thead><tr>
+                <th class="num"><button class="sort-button" type="button" data-action="sort-records" data-key="sourceRow" title="Linha na planilha de origem">Linha</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="periodDate">Abertura</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="closingDate">Fechamento</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="role">Função</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="unit">Unidade</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="shift">Horário</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="status">Status</button></th>
+                <th><button class="sort-button" type="button" data-action="sort-records" data-key="vacancyType">Tipo</button></th>
+                <th class="num"><button class="sort-button" type="button" data-action="sort-records" data-key="days">Dias</button></th>
+                <th class="num"><button class="sort-button" type="button" data-action="sort-records" data-key="totalVivencias">Vivências</button></th>
+                <th>Observações</th>
+              </tr></thead>
+              <tbody id="recordsTable"></tbody>
+            </table>
+          </div>
+          <div class="records-foot">
+            <span class="muted small-text">Nomes de candidatos e colaboradores não são enviados para este relatório.</span>
+            <div id="recordsMore" class="button-row"></div>
+          </div>
+        </article>
+      </section>
+
+      <footer class="page-footer">
+        <span>Relatório Administrativo · Fadelito</span>
+        <span id="footerSource">Fonte: VALIDAÇÃO VAGAS JUL/DEZ</span>
+      </footer>
+      <button id="backBtn" class="button danger back-button" type="button" hidden>Voltar</button>
+    </main>
+  </div>
+
+  <!-- Painel médio centralizado para Gerar Relatório Específico -->
+  <dialog id="specificModal" class="specific-modal" aria-labelledby="specificModalTitle">
+    <div class="dialog-head">
+      <div class="specific-brand">
+        <img class="brand-logo small" src="/Fadelito.png" alt="Logo Fadelito" width="38" height="38">
+        <div>
+          <p class="eyebrow">RELATÓRIO ESPECÍFICO</p>
+          <h2 id="specificModalTitle">Gerar relatório específico</h2>
+        </div>
+      </div>
+      <div class="button-row">
+        <button id="modalClearBtn" class="button danger small" type="button">Limpar seleção</button>
+        <button id="closeSpecificModalBtn" class="button plain small" type="button" aria-label="Fechar">Fechar ✕</button>
+      </div>
+    </div>
+
+    <div class="specific-modal-body">
+      <div class="modal-filter-grid">
+        <div class="field">
+          <label for="spFocus">O que você quer saber?</label>
+          <select id="spFocus">
+            <option value="hires">Contratações (vagas Aprovadas)</option>
+            <option value="auto">Resumo completo (todos os status)</option>
+            <option value="ongoing">Vagas em andamento</option>
+            <option value="cancelled">Vagas canceladas</option>
+            <option value="closing">Tempo médio de fechamento</option>
+            <option value="vivencias">Total de Vivências</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="spPreset">Período</label>
+          <select id="spPreset">
+            <option value="week">Semana atual</option>
+            <option value="month">Mês atual</option>
+            <option value="prevMonth">Mês anterior</option>
+            <option value="last30">Últimos 30 dias</option>
+            <option value="quarter">Últimos 3 meses</option>
+            <option value="year">Ano atual</option>
+            <option value="last12">Últimos 12 meses</option>
+            <option value="all">Todo o histórico</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="spFrom">De</label>
+          <input id="spFrom" type="date">
+        </div>
+        <div class="field">
+          <label for="spTo">Até</label>
+          <input id="spTo" type="date">
+        </div>
+        <div class="field">
+          <label for="spRole">Função / Cargo</label>
+          <select id="spRole"><option value="">Todas as funções</option></select>
+        </div>
+        <div class="field">
+          <label for="spUnit">Unidade</label>
+          <select id="spUnit"><option value="">Todas as unidades</option></select>
+        </div>
+        <div class="field">
+          <label for="spType">Tipo de vaga</label>
+          <select id="spType"><option value="">Todos os tipos</option></select>
+        </div>
+        <div class="field">
+          <label for="spShift">Horário</label>
+          <select id="spShift"><option value="">Todos os horários</option></select>
+        </div>
+      </div>
+
+      <div id="specificAnswer" class="specific-answer"></div>
+
+      <div id="specificKpis" class="specific-kpis"></div>
+
+      <div id="specificBreakdowns" class="content-grid two-columns"></div>
+
+      <details class="specific-records-drawer">
+        <summary><span id="specificRecordCount">Ver lista de registros deste relatório</span></summary>
+        <div class="table-wrap specific-table-wrap">
+          <table class="records-table">
+            <thead><tr>
+              <th class="num">Linha</th>
+              <th>Abertura</th>
+              <th>Fechamento</th>
+              <th>Função</th>
+              <th>Unidade</th>
+              <th>Horário</th>
+              <th>Status</th>
+              <th>Tipo</th>
+              <th class="num">Dias</th>
+            </tr></thead>
+            <tbody id="specificRecordsTable"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <div class="specific-modal-foot">
+      <span id="specificSubtitle" class="muted small-text">—</span>
+      <div class="button-row">
+        <button id="copyReportTextBtn" class="button secondary small" type="button">Copiar resumo (WhatsApp / E-mail)</button>
+        <button id="exportSpecificBtn" class="button primary small" type="button">Exportar CSV deste relatório</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
+    <div class="dialog-head">
+      <h2 id="helpTitle">Como ler este relatório</h2>
+      <button class="button plain" type="button" data-action="close-help" aria-label="Fechar">Fechar</button>
+    </div>
+    <div class="dialog-body">
+      <dl class="glossary">
+        <dt>Gerar relatório específico</dt><dd>Abre um painel centralizado onde você escolhe a função (ex.: AUX LIMPEZA), o período (ex.: Últimos 3 meses) e vê os resultados mudando na hora.</dd>
+        <dt>Limpar filtros / Voltar</dt><dd>Os botões vermelhos <strong>Limpar filtros</strong> (na esquerda e nos filtros) removem todos os filtros ativos; as etiquetas vermelhas no topo mostram o que foi clicado, e o botão <strong>Voltar</strong> no canto inferior direito volta uma etapa por vez.</dd>
+        <dt>Total de vagas</dt><dd>Aprovadas + em andamento. Canceladas ficam fora deste número.</dd>
+        <dt>Aprovadas</dt><dd>Status “Aprovado” (contratações).</dd>
+        <dt>Em andamento</dt><dd>Status Triagem, Briefing ou Vivência.</dd>
+        <dt>Canceladas</dt><dd>Status “Cancelada”. Taxa = canceladas ÷ solicitações do período.</dd>
+        <dt>Tempo médio</dt><dd>Média da coluna Dias (somente aprovadas com valor preenchido).</dd>
+      </dl>
+    </div>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
