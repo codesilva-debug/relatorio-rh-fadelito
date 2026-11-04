@@ -31,7 +31,7 @@ function securityHeaders(res) {
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
 }
 
-const server = http.createServer(async function (req, res) {
+const requestHandler = async function (req, res) {
   securityHeaders(res);
   const url = new URL(req.url, 'http://127.0.0.1:' + PORT);
   req.query = Object.fromEntries(url.searchParams.entries());
@@ -60,11 +60,17 @@ const server = http.createServer(async function (req, res) {
   res.setHeader('Content-Type', item[1]);
   res.setHeader('Cache-Control', 'no-cache');
   fs.createReadStream(path.join(ROOT, item[0])).pipe(res);
-});
+};
 
-server.listen(PORT, '127.0.0.1', function () {
-  console.log('Relatório Administrativo disponível em http://127.0.0.1:' + PORT);
-  console.log('Login temporário do protótipo: Master / 123');
-  console.log('Não publique este acesso temporário em ambiente externo.');
-});
-process.on('SIGINT', function () { server.close(function () { process.exit(0); }); });
+const server = http.createServer(requestHandler);
+
+if (require.main === module) {
+  server.listen(PORT, '127.0.0.1', function () {
+    console.log('Relatório Administrativo disponível em http://127.0.0.1:' + PORT);
+    console.log('Login temporário do protótipo: Master / 123');
+    console.log('Não publique este acesso temporário em ambiente externo.');
+  });
+  process.on('SIGINT', function () { server.close(function () { process.exit(0); }); });
+}
+
+module.exports = requestHandler;
