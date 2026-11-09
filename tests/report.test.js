@@ -98,3 +98,19 @@ test('sinaliza datas atípicas (muito antigas ou futuras) sem alterá-las', func
   assert.equal(result.rows[0].dateWarning, 'old');
   assert.equal(result.meta.issues.atypicalDates, 1);
 });
+
+test('tolera edição acidental do cabeçalho da coluna A (carimbo de data/hora)', function () {
+  const editedHeader = HEADER.slice();
+  editedHeader[0] = 'ty';
+  const payload = {
+    status: 'success',
+    vagas: [
+      editedHeader,
+      ['05/01/2026', 'ESTAGIÁRIA MINI', '', 'Higienópolis', '7:00 ÀS 13:00', '', '', '1', 'Aprovado', '', '09/01/2026', '4', 'Nova', '', 1]
+    ]
+  };
+  const result = buildReportData(payload);
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.rows[0].periodDate, '2026-01-05');
+  assert.equal(result.rows[0].dateSource, 'carimbo');
+});
